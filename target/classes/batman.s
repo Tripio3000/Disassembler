@@ -1,6 +1,7 @@
 .name       "Batman"
 .comment    "This city needs me"
 
+        zjmp %-2
 loop:
         sti r1, %:live, %1
 live:
