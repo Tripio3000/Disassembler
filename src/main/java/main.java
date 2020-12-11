@@ -3,7 +3,7 @@ import java.nio.ByteBuffer;
 
 public class main {
 
-    static public byte [] arr;
+    static public byte[] arr;
     static public int pos;
     static public StringBuilder str;
 
@@ -47,50 +47,52 @@ public class main {
             System.out.println("No file on the command line");
             System.exit(-1);
         }
-
-        File file = new File(arg.toString());
-        FileInputStream fis = null;
         try {
-            fis = new FileInputStream(file);
-        } catch (FileNotFoundException e) {
-            System.out.println("No file on the command line");
-            e.printStackTrace();
-        }
-        arr = new byte[(int)file.length()];
-        fis.read(arr);
+            File file = new File(arg.toString());
+            FileInputStream fis = null;
+            try {
+                fis = new FileInputStream(file);
+            } catch (FileNotFoundException e) {
+                System.out.println("No file on the command line");
+                e.printStackTrace();
+            }
+            arr = new byte[(int) file.length()];
+            fis.read(arr);
 
-        ByteBuffer bb = ByteBuffer.wrap(arr, 0, 4);
-        if (!String.format("%x", bb.getInt()).equals("ea83f3")) {
-            throw new RuntimeException("Not a valid magic header");
-        }
+            ByteBuffer bb = ByteBuffer.wrap(arr, 0, 4);
+            if (!String.format("%x", bb.getInt()).equals("ea83f3")) {
+                throw new RuntimeException("Not a valid magic header");
+            }
 
-        str = new StringBuilder(".name \"");
-        for (int i = 4; i < 132; i++) {
-            str.append((char)arr[i]);
-        }
-        str.append("\"\n");
-        str.append(".comment \"");
-        for (int i = 140; i < 2188; i++) {
-            str.append((char)arr[i]);
-        }
-        str.append("\"\n\n");
+            str = new StringBuilder(".name \"");
+            for (int i = 4; i < 132; i++) {
+                str.append((char) arr[i]);
+            }
+            str.append("\"\n");
+            str.append(".comment \"");
+            for (int i = 140; i < 2188; i++) {
+                str.append((char) arr[i]);
+            }
+            str.append("\"\n\n");
 
-        pos = 2192;
-        while (pos < arr.length) {
-            readCommand();
-        }
-//        System.out.println(str.toString());
+            pos = 2192;
+            while (pos < arr.length) {
+                readCommand();
+            }
 
-        try (FileWriter writer = new FileWriter("notes3.txt", false))
-        {
-            // запись всей строки
-            writer.write(str.toString());
-            // запись по символам
-
-            writer.flush();
-        }
-        catch(IOException ex){
-            System.out.println(ex.getMessage());
+            String [] out;
+            out = args[0].split("\\.");
+            StringBuilder output = new StringBuilder(out[0]);
+            output.append(".s");
+            try (FileWriter writer = new FileWriter(output.toString(), false)) {
+                writer.write(str.toString());
+                writer.flush();
+            } catch (IOException ex) {
+                System.out.println(ex.getMessage());
+            }
+        } catch (Exception e) {
+            System.out.println("Error");
+            e.getMessage();
         }
 
     }
@@ -119,17 +121,28 @@ public class main {
 
     private static void getArg(int type, byte cmd) {
         switch (type) {
-            case constant.T_REG : parseArg (type, 1); break;
-            case constant.T_IND : parseArg (type, 2); break;
-            case constant.T_DIR : parseArg (type, constant.getDirSize(cmd)); break;
+            case constant.T_REG:
+                parseArg(type, 1);
+                break;
+            case constant.T_IND:
+                parseArg(type, 2);
+                break;
+            case constant.T_DIR:
+                parseArg(type, constant.getDirSize(cmd));
+                break;
         }
     }
 
-    private static void parseArg (int type, int size) {
+    private static void parseArg(int type, int size) {
         switch (type) {
-            case constant.T_REG : str.append('r'); break;
-            case constant.T_IND : break;
-            case constant.T_DIR : str.append('%'); break;
+            case constant.T_REG:
+                str.append('r');
+                break;
+            case constant.T_IND:
+                break;
+            case constant.T_DIR:
+                str.append('%');
+                break;
         }
 
         int value = 0;
