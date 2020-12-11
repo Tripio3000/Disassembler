@@ -1,13 +1,5 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class main {
 
@@ -35,27 +27,37 @@ public class main {
         }
     }
 
-    private final static char[] hexArray = "0123456789abcdef".toCharArray();
-
-    public static String bytesToHex(byte[] bytes) {
-        char[] hexChars = new char[bytes.length * 2];
-        for ( int j = 0; j < bytes.length; j++ ) {
-            int v = bytes[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
+//    private final static char[] hexArray = "0123456789abcdef".toCharArray();
+//
+//    public static String bytesToHex(byte[] bytes) {
+//        char[] hexChars = new char[bytes.length * 2];
+//        for ( int j = 0; j < bytes.length; j++ ) {
+//            int v = bytes[j] & 0xFF;
+//            hexChars[j * 2] = hexArray[v >>> 4];
+//            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+//        }
+//        return new String(hexChars);
+//    }
 
     public static void main(String[] args) throws IOException {
-        File file = new File("src/main/resources/Gagnant.cor");
-        FileInputStream fis = new FileInputStream(file);
+        StringBuilder arg = new StringBuilder("src/main/resources/");
+        try {
+            arg.append(args[0]);
+        } catch (RuntimeException e) {
+            System.out.println("No file on the command line");
+            System.exit(-1);
+        }
+
+        File file = new File(arg.toString());
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(file);
+        } catch (FileNotFoundException e) {
+            System.out.println("No file on the command line");
+            e.printStackTrace();
+        }
         arr = new byte[(int)file.length()];
         fis.read(arr);
-//        System.out.printf("%x", arr[2]);
-
-//        String mas = bytesToHex(arr);
-//        System.out.println(mas);
 
         ByteBuffer bb = ByteBuffer.wrap(arr, 0, 4);
         if (!String.format("%x", bb.getInt()).equals("ea83f3")) {
@@ -67,60 +69,30 @@ public class main {
             str.append((char)arr[i]);
         }
         str.append("\"\n");
-//        System.out.println(str.toString());
-
         str.append(".comment \"");
         for (int i = 140; i < 2188; i++) {
             str.append((char)arr[i]);
         }
-        str.append("\"\n");
-        System.out.println(str.toString());
-
-//        System.out.println(String.format("%x", bb.getInt()));
-
-        System.out.println(myString(arr));
-
-
+        str.append("\"\n\n");
 
         pos = 2192;
         while (pos < arr.length) {
             readCommand();
         }
-        System.out.println(str.toString());
+//        System.out.println(str.toString());
 
+        try (FileWriter writer = new FileWriter("notes3.txt", false))
+        {
+            // запись всей строки
+            writer.write(str.toString());
+            // запись по символам
 
+            writer.flush();
+        }
+        catch(IOException ex){
+            System.out.println(ex.getMessage());
+        }
 
-
-
-
-
-//        Path fileLocation = Paths.get("src/main/resources/batman.cor");
-//        byte[] data = Files.readAllBytes(fileLocation);
-//        List<String> magic_header = new ArrayList();
-//        StringBuilder stringBuilder = new StringBuilder();
-//        for (int i = 0; i < data.length; i++) {
-//            if (i < 4) {
-//                stringBuilder.append(String.format("%x", data[i]));
-//            }
-//            else if (i >= 4 && i < 132) {
-//                if (stringBuilder.toString().equals("0ea83f3")) {
-//                    System.out.println("magic header");
-//                }
-//            }
-//        }
-
-//        int magic_header = 0;
-//        for (int i = 0; i < 4; i++) {
-//            System.out.println("data:" + String.format("%x", data[i]) + " " + data[i]);
-//            magic_header = magic_header * 16 + data[i];
-//            System.out.println(String.format("%x", magic_header) + " " + magic_header);
-//        }
-
-
-//        System.out.println(myString(data));
-
-
-//        System.out.println(String.format("%x", 0xea83f3));
     }
 
     private static void readCommand() {
@@ -171,5 +143,7 @@ public class main {
         }
         str.append(value);
     }
-
 }
+
+
+//    mvn exec:java -Dexec.mainClass="main"
